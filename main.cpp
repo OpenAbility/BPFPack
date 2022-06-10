@@ -63,8 +63,8 @@ int main(int argc, char* argv[]){
     if (d) {
         while ((dir = readdir(d)) != NULL) {
             if(dir->d_type==DT_REG){
-                files[file_c] = (char*)malloc(strlen(dir->d_name));
-                strcat(files[file_c], dir->d_name);
+                files[file_c] = (char*)malloc(256);
+                memcpy(files[file_c], dir->d_name, 256);
                 file_c++;
             }
         }
@@ -86,18 +86,30 @@ int main(int argc, char* argv[]){
     unsigned char* data[file_c]; // The complete data array
 
     for(int i = 0; i < file_c; i++){
-        printf("READING FILE\t %s\n", files[i]);
-        ifstream in(files[i], std::ifstream::ate | std::ifstream::binary);
-        sizes[i] = in.tellg();
-        in.seekg(0, std::ios_base::beg);
+        std::string path;
+        path.append(directory).append("/").append(files[i]);
+        printf("READING FILE\t");
+        printf("%s\t", files[i]);
 
-        std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(in), {});
-        data[i] = (unsigned char*)malloc(buffer.size());
-        memcpy(data[i], buffer.data(), buffer.size());
+        ifstream in(path, std::ifstream::in | std::ifstream::binary);
+        if(in.is_open()){
+            std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(in), {});
+            sizes[i] = buffer.size();
+            data[i] = (unsigned char*)malloc(buffer.size());
+            memcpy(data[i], buffer.data(), buffer.size());
+
+            printf("[OK]\n");
+        } else{
+            printf("[FAILED]\n");
+            return 1;
+        }
     }
 
+    printf("Generating bpf_file_t...\n");
 
-    bpf_file_t file = bpf_generate_file(files, file_c, sizes, data); // Generate the array*/
+    bpf_file_t file = bpf_generate_file(files, file_c, sizes, data); // Generate the array
+
+    printf("Generating raw data...\n");
 
     bpf_file_data_t filedata = bpf_serialize_file(file); // Serialize into a byte[];
 
