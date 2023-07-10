@@ -12,5 +12,3 @@ What it does it that it gets all **top level**(not recursive) files of the direc
 The tool isn't too evolved, but it is used in a W.I.P game and will most likely be updated with recursive support.
 
 Written by *khhs*, protected by the *MIT License 2*​
-14
-Written by *khhs*, protected by the *MIT License 2
